@@ -111,7 +111,7 @@
 
 <script>
 import PasswordField from '../components/PasswordField.vue'
-import { registerUser, userEmailExists } from '../utils/auth.js'
+import { registerUser, signIn, userEmailExists } from '../utils/auth.js'
 
 export default {
     components: { PasswordField },
@@ -168,11 +168,13 @@ export default {
                 return
             }
 
-            this.message = 'Đăng ký thành công! Đang chuyển đến đăng nhập...'
-
-            setTimeout(() => {
+            if (!signIn(user)) {
+                this.error = 'Tài khoản đã được tạo nhưng chưa thể đăng nhập tự động. Vui lòng đăng nhập.'
                 this.$router.push('/login')
-            }, 1000)
+                return
+            }
+
+            this.$router.push('/')
         }
     }
 }
