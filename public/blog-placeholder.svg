@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="90" y1="30" x2="1100" y2="700" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#17363c"/>
+      <stop offset="1" stop-color="#315b57"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(420 360 -370 432 905 190)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d56a48" stop-opacity=".78"/>
+      <stop offset="1" stop-color="#d56a48" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path fill="url(#bg)" d="M0 0h1200v720H0z"/>
+  <path fill="url(#glow)" d="M0 0h1200v720H0z"/>
+  <circle cx="940" cy="220" r="190" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+  <circle cx="940" cy="220" r="235" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>
+  <path d="M0 548c180-62 300-72 450-36s250 63 430 7 225-91 320-115v316H0V548Z" fill="#0c2529" fill-opacity=".48"/>
+  <text x="84" y="555" fill="#f0b59b" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="7">MY BLOG · VĂN HÓA &amp; GIẢI TRÍ</text>
+  <text x="80" y="630" fill="#fff" font-family="Arial,sans-serif" font-size="56" font-weight="800">Câu chuyện đang được cập nhật</text>
+</svg>

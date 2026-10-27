@@ -1,23 +1,30 @@
 <template>
-    <div class="row justify-content-center py-3">
-        <div class="col-lg-9">
+    <div class="row justify-content-center py-3 create-post-page edit-post-page">
+        <div class="col-xl-10 col-lg-11">
             <div class="mb-4">
-                <p class="mag-kicker">MANAGE YOUR STORY</p>
+                <p class="mag-kicker">CẬP NHẬT BÀI VIẾT</p>
                 <h1 class="mag-heading">Chỉnh sửa bài viết</h1>
                 <p class="mag-subtitle">
                     Cập nhật nội dung và hình ảnh bài viết của bạn.
                 </p>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Thông tin bài viết</h5>
+            <div class="card shadow-sm create-post-card">
+                <div class="card-header bg-white create-post-card-header">
+                    <span class="create-post-icon" aria-hidden="true">✎</span>
+                    <div>
+                        <h5 class="mb-1">Chỉnh sửa nội dung</h5>
+                        <p class="mb-0 small text-secondary">Cập nhật tiêu đề, ảnh bìa và bài viết</p>
+                    </div>
                 </div>
 
                 <div class="card-body">
                     <div v-if="error" class="alert alert-danger" role="alert">
                         {{ error }}
                     </div>
+                    <p v-if="canEdit" class="small text-secondary mb-3" aria-live="polite">
+                        {{ draftStatus || 'Bản nháp sửa bài được lưu tự động trên thiết bị này.' }}
+                    </p>
 
                     <form v-if="canEdit" @submit.prevent="updatePost">
                         <div class="mb-3">
@@ -32,22 +39,36 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="edit-post-image" class="form-label">Link hình ảnh</label>
-                            <input
-                                v-model.trim="image"
-                                id="edit-post-image"
-                                type="url"
-                                class="form-control"
-                                placeholder="https://example.com/image.jpg"
-                            >
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-7">
+                                    <label for="edit-post-image" class="form-label">Link ảnh bìa</label>
+                                    <input
+                                        v-model.trim="image"
+                                        id="edit-post-image"
+                                        type="url"
+                                        class="form-control"
+                                        placeholder="https://example.com/image.jpg"
+                                        @input="removeUploadedImage"
+                                    >
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="edit-post-image-file" class="form-label">Hoặc chọn ảnh từ máy</label>
+                                    <input id="edit-post-image-file" ref="imageFile" type="file" accept="image/*" class="form-control create-image-file" @change="handleImageUpload">
+                                </div>
+                                <div class="col-12 d-flex flex-wrap align-items-center gap-2">
+                                    <small class="text-secondary">Ảnh tải lên được tự động thu nhỏ (tối đa 12 MB).</small>
+                                    <button v-if="uploadedImage" type="button" class="btn btn-sm btn-link p-0 ms-auto" @click="removeUploadedImage">Bỏ ảnh đã chọn</button>
+                                    <p v-if="imageUploadError" class="w-100 text-danger small mb-0" role="alert">{{ imageUploadError }}</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div v-if="image" class="mb-4">
+                        <div v-if="previewImage" class="mb-4">
                             <img
-                                :src="image"
+                                :src="previewImage"
                                 alt="Ảnh bài viết"
-                                class="article-cover rounded"
-                                style="max-height: 300px;"
+                                class="article-cover rounded create-image-preview"
+                                style="max-height: 210px;"
                                 @error="imagePreviewError = true"
                                 @load="imagePreviewError = false"
                             >
@@ -65,13 +86,30 @@
                                 v-model.trim="content"
                                 id="edit-post-content"
                                 class="form-control"
-                                rows="10"
+                                rows="8"
                                 required
                             ></textarea>
-                            <div class="d-flex justify-content-between mt-2 text-secondary small">
-                                <span>{{ wordCount }} từ · khoảng {{ readingMinutes }} phút đọc</span>
-                                <span>Gợi ý: chia nội dung thành các đoạn ngắn để dễ đọc.</span>
+                            <small class="d-block mt-2 text-secondary">
+                                Bạn có thể chia nội dung thành các đoạn ngắn để dễ đọc.
+                            </small>
+                            <div class="d-flex flex-wrap gap-3 mt-2 small text-secondary" aria-live="polite">
+                                <span>{{ wordCount }} từ</span>
+                                <span>Thời gian đọc dự kiến: {{ readingMinutes }} phút</span>
                             </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm" @click="showPreview = !showPreview">
+                                {{ showPreview ? 'Ẩn xem trước' : 'Xem trước bài viết' }}
+                            </button>
+                            <article v-if="showPreview" class="compose-preview mt-3">
+                                <img v-if="previewImage && !imagePreviewError" :src="previewImage" :alt="title || 'Ảnh bài viết'" @error="imagePreviewError = true" @load="imagePreviewError = false">
+                                <div class="compose-preview-copy">
+                                    <p class="mag-kicker mb-2">XEM TRƯỚC BÀI VIẾT</p>
+                                    <h2>{{ title || 'Tiêu đề bài viết' }}</h2>
+                                    <p>{{ content || 'Nội dung bài viết sẽ hiển thị ở đây.' }}</p>
+                                </div>
+                            </article>
                         </div>
 
                         <div class="d-flex flex-wrap gap-2">
@@ -102,29 +140,25 @@
 </template>
 
 <script>
-import { readPosts, savePosts, getReadingMinutes } from '../utils/blog.js'
+import { readPosts, savePosts, getReadingMinutes, prepareImageUpload } from '../utils/blog.js'
 import { getStoredUser, isAuthenticated } from '../utils/auth.js'
+import { showAppDialog } from '../utils/dialog.js'
 
 export default {
     data() {
         return {
             title: '',
             image: '',
+            uploadedImage: '',
             content: '',
             error: '',
             postId: null,
             canEdit: false,
-            imagePreviewError: false
-        }
-    },
-
-    computed: {
-        wordCount() {
-            return this.content.trim().split(/\s+/).filter(Boolean).length
-        },
-
-        readingMinutes() {
-            return getReadingMinutes(this.content)
+            imagePreviewError: false,
+            showPreview: false,
+            draftStatus: '',
+            draftTimer: null,
+            imageUploadError: ''
         }
     },
 
@@ -135,16 +169,115 @@ export default {
     watch: {
         '$route.params.id'() {
             this.loadPost()
+        },
+        title() { this.scheduleDraftSave() },
+        image() { this.scheduleDraftSave() },
+        uploadedImage() { this.scheduleDraftSave() },
+        content() { this.scheduleDraftSave() }
+    },
+
+    computed: {
+        wordCount() {
+            return this.content.trim().split(/\s+/).filter(Boolean).length
+        },
+        readingMinutes() {
+            return getReadingMinutes(this.content)
+        },
+        previewImage() {
+            return this.uploadedImage || this.image
         }
     },
 
+    beforeUnmount() {
+        this.persistDraft()
+    },
+
     methods: {
+        draftStorageKey() {
+            const user = getStoredUser()
+            return user?.email && this.postId
+                ? `blog-vue:draft:edit:${user.email.toLowerCase()}:${this.postId}`
+                : null
+        },
+
+        restoreDraft() {
+            const key = this.draftStorageKey()
+            if (!key) return
+            try {
+                const saved = localStorage.getItem(key)
+                if (!saved) {
+                    this.draftStatus = ''
+                    return
+                }
+                const draft = JSON.parse(saved)
+                this.title = draft.title ?? this.title
+                this.image = draft.image ?? this.image
+                this.uploadedImage = draft.uploadedImage || ''
+                this.content = draft.content ?? this.content
+                this.draftStatus = 'Đã khôi phục bản nháp sửa bài trước đó.'
+            } catch {
+                this.draftStatus = 'Không thể đọc bản nháp đã lưu.'
+            }
+        },
+
+        scheduleDraftSave() {
+            if (!this.canEdit || !this.draftStorageKey()) return
+            this.draftStatus = 'Đang lưu bản nháp…'
+            clearTimeout(this.draftTimer)
+            this.draftTimer = setTimeout(this.persistDraft, 450)
+        },
+
+        persistDraft() {
+            clearTimeout(this.draftTimer)
+            if (this.draftStatus === 'Bản nháp đã được xóa.') return
+            if (!this.canEdit) return
+            const key = this.draftStorageKey()
+            if (!key) return
+            try {
+                localStorage.setItem(key, JSON.stringify({ title: this.title, image: this.image, uploadedImage: this.uploadedImage, content: this.content }))
+                this.draftStatus = 'Bản nháp đã lưu trên thiết bị này.'
+            } catch {
+                this.draftStatus = 'Không thể lưu bản nháp trên thiết bị này.'
+            }
+        },
+
+        clearDraft() {
+            clearTimeout(this.draftTimer)
+            const key = this.draftStorageKey()
+            if (key) {
+                try { localStorage.removeItem(key) } catch { /* Storage may be unavailable. */ }
+            }
+            this.draftStatus = 'Bản nháp đã được xóa.'
+        },
+
+        async handleImageUpload(event) {
+            const file = event.target.files?.[0]
+            this.imageUploadError = ''
+            if (!file) return
+            try {
+                this.uploadedImage = await prepareImageUpload(file)
+                this.imagePreviewError = false
+            } catch (error) {
+                this.imageUploadError = error.message || 'Không thể tải ảnh lên.'
+                event.target.value = ''
+            }
+        },
+
+        removeUploadedImage() {
+            this.uploadedImage = ''
+            this.imagePreviewError = false
+            this.imageUploadError = ''
+            if (this.$refs.imageFile) this.$refs.imageFile.value = ''
+        },
+
         loadPost() {
+            if (this.canEdit) this.persistDraft()
             this.title = ''
             this.image = ''
             this.content = ''
             this.error = ''
             this.canEdit = false
+            this.showPreview = false
 
             if (!isAuthenticated()) {
                 this.$router.push('/login')
@@ -175,9 +308,12 @@ export default {
             this.image = post.image
             this.content = post.content
             this.canEdit = true
+            this.uploadedImage = ''
+            this.imageUploadError = ''
+            this.restoreDraft()
         },
 
-        updatePost() {
+        async updatePost() {
             this.error = ''
 
             if (!this.title || !this.content) {
@@ -204,8 +340,7 @@ export default {
             }
 
             posts[index].title = this.title
-            posts[index].image = this.image ||
-                'https://placehold.co/1000x600/eaf2ff/12336b?text=MY+BLOG'
+            posts[index].image = this.uploadedImage || this.image || '/blog-placeholder.svg'
             posts[index].content = this.content
             posts[index].updatedAt = new Date().toLocaleString('vi-VN')
 
@@ -214,7 +349,12 @@ export default {
                 return
             }
 
-            alert('Cập nhật bài viết thành công!')
+            this.clearDraft()
+            await showAppDialog({
+                title: 'Đã lưu thay đổi',
+                message: 'Bài viết của bạn đã được cập nhật.',
+                tone: 'success'
+            })
             this.$router.push('/my-posts')
         }
     }

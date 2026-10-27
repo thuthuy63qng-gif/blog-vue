@@ -11,25 +11,28 @@
                     </router-link>
                 </div>
 
-                <article class="card shadow-sm mb-4">
+                <article class="card shadow-sm mb-4 post-detail-card">
                     <img
                         :src="getImage(post)"
                         :alt="post.title"
-                        class="article-cover"
+                        class="article-cover post-detail-cover"
                         @error="handleImageError"
                     >
+                    <div v-if="getImageSource(post)" class="article-image-credit">
+                        Nguồn ảnh:
+                        <a :href="post.imageSource || post.image" target="_blank" rel="noopener noreferrer">
+                            {{ getImageSource(post) }}
+                        </a>
+                    </div>
 
-                    <div class="card-body p-md-5">
-                        <span class="mag-category">
-                            {{ getCategory(post) }}
-                        </span>
-
-                        <h1 class="article-title mt-3 mb-4">
+                    <div class="card-body p-md-5 post-detail-body">
+                        <p class="mag-kicker post-detail-category">{{ getCategory(post) }}</p>
+                        <h1 class="article-title mb-4">
                             {{ post.title }}
                         </h1>
 
-                        <div class="d-flex flex-wrap gap-2 align-items-center text-secondary mb-4">
-                            <strong class="text-dark">
+                        <div class="d-flex flex-wrap gap-2 align-items-center text-secondary mb-4 post-detail-meta">
+                            <strong>
                                 {{ post.author }}
                             </strong>
                             <span>•</span>
@@ -42,36 +45,10 @@
                             <span>{{ readingMinutes }} phút đọc</span>
                         </div>
 
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
-                            <button
-                                type="button"
-                                class="btn"
-                                :class="isLiked ? 'btn-primary' : 'btn-outline-primary'"
-                                :aria-pressed="isLiked"
-                                @click="toggleLike"
-                            >
-                                {{ isLiked ? '♥ Đã thích' : '♡ Thích bài viết' }}
-                                <span class="ms-1">({{ post.likes.length }})</span>
-                            </button>
-                            <span v-if="likeError" class="text-danger small" role="alert">
-                                {{ likeError }}
-                            </span>
-                        </div>
-
                         <hr class="mb-4">
 
                         <div class="article-content">
                             {{ post.content }}
-                        </div>
-
-                        <div class="mt-4 pt-3 border-top">
-                            <button
-                                type="button"
-                                class="btn btn-outline-primary"
-                                @click="sharePost"
-                            >
-                                Chia sẻ bài viết
-                            </button>
                         </div>
 
                         <div
@@ -88,7 +65,7 @@
                     </div>
                 </article>
 
-                <section class="card shadow-sm">
+                <section class="card shadow-sm post-comments-card">
                     <div class="card-header bg-white">
                         <h4 class="mb-0 fw-bold">
                             Bình luận ({{ post.comments.length }})
@@ -154,36 +131,14 @@
                                 </small>
                             </div>
 
-                            <small v-if="item.editedAt" class="text-secondary">
-                                Đã chỉnh sửa · {{ item.editedAt }}
-                            </small>
+                            <small v-if="item.editedAt" class="text-secondary">Đã chỉnh sửa · {{ item.editedAt }}</small>
 
-                            <form
-                                v-if="editingCommentId === item.id"
-                                class="mt-2"
-                                @submit.prevent="saveCommentEdit(item.id)"
-                            >
-                                <label :for="'edit-comment-' + item.id" class="visually-hidden">
-                                    Chỉnh sửa bình luận
-                                </label>
-                                <textarea
-                                    :id="'edit-comment-' + item.id"
-                                    v-model.trim="editCommentContent"
-                                    class="form-control mb-2"
-                                    rows="3"
-                                    required
-                                ></textarea>
+                            <form v-if="editingCommentId === item.id" class="mt-2" @submit.prevent="saveCommentEdit(item.id)">
+                                <label :for="'edit-comment-' + item.id" class="visually-hidden">Chỉnh sửa bình luận</label>
+                                <textarea :id="'edit-comment-' + item.id" v-model.trim="editCommentContent" class="form-control mb-2" rows="3" required></textarea>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <button type="submit" class="btn btn-sm btn-primary">
-                                        Lưu bình luận
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        @click="cancelCommentEdit"
-                                    >
-                                        Hủy
-                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary">Lưu bình luận</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" @click="cancelCommentEdit">Hủy</button>
                                 </div>
                             </form>
 
@@ -192,20 +147,8 @@
                             </p>
 
                             <div v-if="isOwnComment(item) && editingCommentId !== item.id" class="d-flex gap-2 mt-3">
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-primary"
-                                    @click="startCommentEdit(item)"
-                                >
-                                    Sửa
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    @click="deleteComment(item.id)"
-                                >
-                                    Xóa
-                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @click="startCommentEdit(item)">Sửa</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteComment(item.id)">Xóa</button>
                             </div>
                         </div>
                     </div>
@@ -218,36 +161,20 @@
                             <h2>Bài viết liên quan</h2>
                         </div>
                     </div>
-
                     <div class="row g-3">
-                        <div
-                            v-for="related in relatedPosts"
-                            :key="related.id"
-                            class="col-md-4"
-                        >
-                            <article class="story-card">
-                                <img
-                                    :src="getImage(related)"
-                                    :alt="related.title"
-                                    class="story-image"
-                                    @error="handleImageError"
-                                >
+                        <div v-for="related in relatedPosts" :key="related.id" class="col-md-4">
+                            <article class="story-card related-post-card">
+                                <img :src="getImage(related)" :alt="related.title" class="story-image" @error="handleImageError">
                                 <div class="story-copy">
                                     <span class="mag-category mb-2">{{ getCategory(related) }}</span>
-                                    <router-link
-                                        :to="'/post/' + related.id"
-                                        class="story-title d-block"
-                                    >
-                                        {{ related.title }}
-                                    </router-link>
-                                    <p class="story-excerpt mt-2 mb-0">
-                                        {{ excerpt(related.content, 100) }}
-                                    </p>
+                                    <router-link :to="'/post/' + related.id" class="story-title d-block">{{ related.title }}</router-link>
+                                    <p class="story-excerpt mt-2 mb-0">{{ excerpt(related.content, 100) }}</p>
                                 </div>
                             </article>
                         </div>
                     </div>
                 </section>
+
             </div>
 
             <div v-else class="card">
@@ -270,12 +197,13 @@ import {
     readPosts,
     savePosts,
     seedSamplePosts,
+    getPostImage,
     getPostCategory,
     getReadingMinutes,
-    getExcerpt,
-    getPostImage
+    getExcerpt
 } from '../utils/blog.js'
 import { getStoredUser, isAuthenticated } from '../utils/auth.js'
+import { showAppDialog } from '../utils/dialog.js'
 
 export default {
     data() {
@@ -287,7 +215,6 @@ export default {
             editCommentContent: '',
             commentError: '',
             commentMessage: '',
-            likeError: '',
             isLogin: false,
             currentEmail: ''
         }
@@ -296,7 +223,6 @@ export default {
     computed: {
         relatedPosts() {
             if (!this.post) return []
-
             const category = this.getCategory(this.post)
             return this.posts
                 .filter(item => item.id !== this.post.id && this.getCategory(item) === category)
@@ -311,12 +237,6 @@ export default {
             return this.isLogin &&
                 this.post &&
                 this.post.email === this.currentEmail
-        },
-
-        isLiked() {
-            return !!this.currentEmail &&
-                Array.isArray(this.post?.likes) &&
-                this.post.likes.includes(this.currentEmail)
         }
     },
 
@@ -341,7 +261,6 @@ export default {
             const id = Number(this.$route.params.id)
 
             const posts = readPosts()
-
             this.posts = posts
 
             const foundPost = posts.find(item => item.id === id)
@@ -350,10 +269,6 @@ export default {
                 if (!Array.isArray(foundPost.comments)) {
                     foundPost.comments = []
                 }
-                if (!Array.isArray(foundPost.likes)) {
-                    foundPost.likes = []
-                }
-
                 this.post = foundPost
             } else {
                 this.post = null
@@ -427,38 +342,8 @@ export default {
             this.commentMessage = 'Bình luận đã được gửi.'
         },
 
-        toggleLike() {
-            this.likeError = ''
-            if (!isAuthenticated()) {
-                this.$router.push('/login')
-                return
-            }
-
-            const posts = readPosts()
-            const index = posts.findIndex(item => item.id === this.post.id)
-            if (index === -1) {
-                this.likeError = 'Không tìm thấy bài viết.'
-                return
-            }
-
-            if (!Array.isArray(posts[index].likes)) posts[index].likes = []
-            const liked = posts[index].likes.includes(this.currentEmail)
-            posts[index].likes = liked
-                ? posts[index].likes.filter(email => email !== this.currentEmail)
-                : [...posts[index].likes, this.currentEmail]
-
-            if (!savePosts(posts)) {
-                this.likeError = 'Không thể lưu lượt thích. Vui lòng thử lại.'
-                return
-            }
-
-            this.post = posts[index]
-        },
-
         isOwnComment(item) {
-            return this.isLogin &&
-                item.email &&
-                item.email === this.currentEmail
+            return this.isLogin && item.email && item.email === this.currentEmail
         },
 
         startCommentEdit(item) {
@@ -488,44 +373,40 @@ export default {
                 return
             }
 
-            const comments = Array.isArray(posts[postIndex].comments)
-                ? posts[postIndex].comments
-                : []
+            const comments = Array.isArray(posts[postIndex].comments) ? posts[postIndex].comments : []
             const commentIndex = comments.findIndex(item => item.id === commentId)
-
             if (commentIndex === -1 || comments[commentIndex].email !== this.currentEmail) {
                 this.commentError = 'Bạn không có quyền sửa bình luận này.'
                 this.cancelCommentEdit()
                 return
             }
 
-            const updatedComments = comments.map(item => item.id === commentId ? {
-                ...comments[commentIndex],
-                content,
-                editedAt: new Date().toLocaleString('vi-VN')
-            } : item)
-            posts[postIndex] = {
-                ...posts[postIndex],
-                comments: updatedComments
-            }
+            const updatedComments = comments.map(item => item.id === commentId
+                ? { ...item, content, editedAt: new Date().toLocaleString('vi-VN') }
+                : item)
+            posts[postIndex] = { ...posts[postIndex], comments: updatedComments }
             if (!savePosts(posts)) {
                 this.commentError = 'Không lưu được thay đổi. Vui lòng thử lại.'
                 return
             }
-            this.post = {
-                ...this.post,
-                comments: updatedComments
-            }
+
+            this.post = { ...this.post, comments: updatedComments }
             this.posts = posts
             this.cancelCommentEdit()
             this.commentMessage = 'Bình luận đã được cập nhật.'
         },
 
-        deleteComment(commentId) {
-            if (!this.post || !confirm('Bạn có chắc muốn xóa bình luận này?')) return
-
-            this.commentError = ''
-            this.commentMessage = ''
+        async deleteComment(commentId) {
+            if (!this.post) return
+            const confirmed = await showAppDialog({
+                title: 'Xóa bình luận này?',
+                message: 'Bạn có chắc muốn xóa bình luận này?',
+                confirm: true,
+                confirmLabel: 'Xóa bình luận',
+                cancelLabel: 'Giữ lại',
+                danger: true
+            })
+            if (!confirmed) return
 
             const posts = readPosts()
             const postIndex = posts.findIndex(item => item.id === this.post.id)
@@ -533,76 +414,50 @@ export default {
                 this.commentError = 'Không tìm thấy bài viết.'
                 return
             }
-
-            const comments = Array.isArray(posts[postIndex].comments)
-                ? posts[postIndex].comments
-                : []
+            const comments = Array.isArray(posts[postIndex].comments) ? posts[postIndex].comments : []
             const target = comments.find(item => item.id === commentId)
-
             if (!target || target.email !== this.currentEmail) {
                 this.commentError = 'Bạn không có quyền xóa bình luận này.'
                 return
             }
 
             const updatedComments = comments.filter(item => item.id !== commentId)
-            posts[postIndex] = {
-                ...posts[postIndex],
-                comments: updatedComments
-            }
+            posts[postIndex] = { ...posts[postIndex], comments: updatedComments }
             if (!savePosts(posts)) {
                 this.commentError = 'Không xóa được bình luận. Vui lòng thử lại.'
                 return
             }
-            // Replace the post and comments array so Vue immediately refreshes
-            // the rendered list and comment count after deleting.
-            this.post = {
-                ...this.post,
-                comments: updatedComments
-            }
+            this.post = { ...this.post, comments: updatedComments }
             this.posts = posts
             if (this.editingCommentId === commentId) this.cancelCommentEdit()
             this.commentMessage = 'Bình luận đã được xóa.'
-        },
-
-        async sharePost() {
-            const shareData = {
-                title: this.post.title,
-                text: `Đọc bài viết “${this.post.title}” trên My Blog`,
-                url: window.location.href
-            }
-
-            try {
-                if (navigator.share) {
-                    await navigator.share(shareData)
-                } else if (navigator.clipboard?.writeText) {
-                    await navigator.clipboard.writeText(shareData.url)
-                    alert('Đã sao chép liên kết bài viết.')
-                } else {
-                    window.prompt('Sao chép liên kết bài viết:', shareData.url)
-                }
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    alert('Không thể chia sẻ bài viết lúc này.')
-                }
-            }
         },
 
         getCategory(post) {
             return getPostCategory(post)
         },
 
-        getImage(post) {
-            return getPostImage(post)
-        },
-
         excerpt(content, maxLength = 100) {
             return getExcerpt(content, maxLength)
         },
 
+        getImage(post) {
+            return getPostImage(post)
+        },
+
+        getImageSource(post) {
+            const source = post?.imageSource || post?.image
+            if (!/^https?:\/\//i.test(source || '')) return ''
+            try {
+                return new URL(source).hostname.replace(/^www\./, '')
+            } catch {
+                return 'liên kết ảnh'
+            }
+        },
+
         handleImageError(event) {
             event.target.onerror = null
-            event.target.src =
-                'https://placehold.co/1000x600/eaf2ff/12336b?text=MY+BLOG'
+            event.target.src = '/blog-placeholder.svg'
         }
     }
 }

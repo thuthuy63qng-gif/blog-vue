@@ -1,11 +1,4 @@
 <template>
-    <div class="mag-topline d-none d-md-block">
-        <div class="container d-flex justify-content-between">
-            <span>TẠP CHÍ SHOWBIZ & GIẢI TRÍ</span>
-            <span>Tin sao · Phim ảnh · Âm nhạc</span>
-        </div>
-    </div>
-
     <nav class="navbar navbar-expand-lg navbar-dark mag-navbar">
         <div class="container">
             <router-link class="navbar-brand" to="/" @click="closeMenu">

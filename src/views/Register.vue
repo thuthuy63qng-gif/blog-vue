@@ -4,7 +4,7 @@
             <div class="card shadow-sm auth-card">
                 <div class="row g-0">
                     <div class="col-lg-5">
-                        <div class="auth-visual">
+                        <div class="auth-visual login-visual register-visual">
                             <img
                                 src="https://images.unsplash.com/photo-1579829984491-b0460ee17cae?auto=format&fit=crop&w=1400&q=85"
                                 alt="Khán giả cùng thưởng thức buổi hòa nhạc dưới ánh đèn sân khấu"
@@ -13,6 +13,11 @@
                                 <p class="auth-visual-kicker">MY BLOG · CỘNG ĐỒNG GIẢI TRÍ</p>
                                 <h2>Nơi câu chuyện của bạn được lắng nghe.</h2>
                                 <p>Chia sẻ góc nhìn, khám phá câu chuyện mới và kết nối cùng những người cùng sở thích.</p>
+                                <div class="login-highlights" aria-label="Quyền lợi thành viên My Blog">
+                                    <span>Viết bài</span>
+                                    <span>Bình luận</span>
+                                    <span>Kết nối</span>
+                                </div>
                                 <a
                                     class="auth-photo-credit"
                                     href="https://unsplash.com/es/fotos/personas-en-un-concierto-durante-la-noche-1wGQdP5aBWE"
@@ -26,9 +31,13 @@
                     </div>
 
                     <div class="col-lg-7">
-                        <div class="auth-form">
+                        <div class="auth-form login-form register-form">
+                            <div class="login-brand" aria-label="My Blog">
+                                <span>M</span>
+                                <strong>MY BLOG</strong>
+                            </div>
                             <div class="mb-4">
-                                <p class="mag-kicker">JOIN OUR COMMUNITY</p>
+                                <p class="mag-kicker">THAM GIA CỘNG ĐỒNG</p>
                                 <h1 class="mag-heading mb-2">Tạo tài khoản</h1>
                                 <p class="mag-subtitle mb-0">
                                     Đăng ký để viết bài và chia sẻ góc nhìn giải trí.
@@ -91,7 +100,7 @@
                                 />
 
                                 <button type="submit" class="btn btn-primary w-100">
-                                    Tạo tài khoản
+                                    Tạo tài khoản <span aria-hidden="true">→</span>
                                 </button>
                             </form>
 

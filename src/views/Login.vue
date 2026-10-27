@@ -4,15 +4,20 @@
             <div class="card shadow-sm auth-card">
                 <div class="row g-0">
                     <div class="col-lg-5">
-                        <div class="auth-visual">
+                        <div class="auth-visual login-visual">
                             <img
                                 src="https://images.unsplash.com/photo-1579829984491-b0460ee17cae?auto=format&fit=crop&w=1400&q=85"
                                 alt="Khán giả cùng thưởng thức buổi hòa nhạc dưới ánh đèn sân khấu"
                             >
                             <div class="auth-visual-copy">
                                 <p class="auth-visual-kicker">MY BLOG · CỘNG ĐỒNG GIẢI TRÍ</p>
-                                <h2>Rất vui vì bạn đã quay lại.</h2>
-                                <p>Đăng nhập để tiếp tục đọc, trò chuyện và chia sẻ góc nhìn của bạn.</p>
+                                <h2>Kết nối với những câu chuyện bạn yêu thích.</h2>
+                                <p>Đọc bài mới, trò chuyện cùng cộng đồng và chia sẻ góc nhìn của riêng bạn.</p>
+                                <div class="login-highlights" aria-label="Tính năng My Blog">
+                                    <span>Đọc bài viết</span>
+                                    <span>Thảo luận</span>
+                                    <span>Chia sẻ</span>
+                                </div>
                                 <a
                                     class="auth-photo-credit"
                                     href="https://unsplash.com/es/fotos/personas-en-un-concierto-durante-la-noche-1wGQdP5aBWE"
@@ -26,9 +31,13 @@
                     </div>
 
                     <div class="col-lg-7">
-                        <div class="auth-form">
+                        <div class="auth-form login-form">
+                            <div class="login-brand" aria-label="My Blog">
+                                <span>M</span>
+                                <strong>MY BLOG</strong>
+                            </div>
                             <div class="mb-4">
-                                <p class="mag-kicker">WELCOME BACK</p>
+                                <p class="mag-kicker">CHÀO MỪNG BẠN TRỞ LẠI</p>
                                 <h1 class="mag-heading mb-2">Đăng nhập</h1>
                                 <p class="mag-subtitle mb-0">
                                     Tiếp tục khám phá những bài viết thú vị.
@@ -64,7 +73,7 @@
                                 />
 
                                 <button type="submit" class="btn btn-primary w-100">
-                                    Đăng nhập
+                                    Đăng nhập <span aria-hidden="true">→</span>
                                 </button>
                             </form>
 

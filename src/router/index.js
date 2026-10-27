@@ -44,14 +44,12 @@ const router = createRouter({
     routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(to => {
     if (to.meta.requiresAuth && !isAuthenticated()) {
-        next({
+        return {
             path: '/login',
             query: { redirect: to.fullPath }
-        })
-    } else {
-        next()
+        }
     }
 })
 

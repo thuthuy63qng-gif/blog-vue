@@ -1,37 +1,43 @@
 <template>
-    <div class="row justify-content-center py-3">
-        <div class="col-lg-8">
+    <div class="row justify-content-center py-3 profile-page">
+        <div class="col-xl-10 col-lg-11">
             <div class="mb-4">
-                <p class="mag-kicker">YOUR ACCOUNT</p>
+                <p class="mag-kicker">TÀI KHOẢN CỦA BẠN</p>
                 <h1 class="mag-heading">Hồ sơ cá nhân</h1>
                 <p class="mag-subtitle">
                     Quản lý thông tin tài khoản My Blog của bạn.
                 </p>
             </div>
 
-            <div class="card shadow-sm">
-                <div class="card-body p-md-4">
-                    <div class="row g-4 align-items-start">
-                        <div class="col-md-4 text-center">
+            <div class="card shadow-sm profile-card create-post-card">
+                <div class="card-header bg-white create-post-card-header">
+                    <span class="create-post-icon" aria-hidden="true">◎</span>
+                    <div>
+                        <h5 class="mb-1">Thông tin tài khoản</h5>
+                        <p class="mb-0 small text-secondary">Cập nhật thông tin bạn muốn hiển thị với cộng đồng</p>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="row g-0 align-items-stretch">
+                        <div class="col-md-4 text-center profile-identity">
                             <img
-                                :src="avatar || defaultAvatar"
+                                :src="previewAvatar"
                                 alt="Ảnh đại diện"
                                 class="profile-avatar mb-3"
                                 @error="handleAvatarError"
                             >
 
                             <h5 class="fw-bold mb-1">{{ name }}</h5>
-                            <p class="text-secondary small">
-                                Thành viên My Blog
-                            </p>
+                            <p class="profile-email">{{ email }}</p>
+                            <span class="profile-post-count">{{ postCount }} bài đã đăng</span>
                         </div>
 
-                        <div class="col-md-8">
-                                <div v-if="message" class="alert alert-success" role="status">
+                        <div class="col-md-8 profile-form-column">
+                            <div v-if="message" class="alert alert-success" role="status">
                                 {{ message }}
                             </div>
 
-                                <div v-if="error" class="alert alert-danger" role="alert">
+                            <div v-if="error" class="alert alert-danger" role="alert">
                                 {{ error }}
                             </div>
 
@@ -72,17 +78,27 @@
                                     placeholder="Để trống nếu không đổi mật khẩu"
                                 />
 
-                                <div class="mb-4">
-                                    <label for="profile-avatar" class="form-label">
-                                        Link ảnh đại diện
-                                    </label>
-                                    <input
-                                        v-model.trim="avatar"
-                                        id="profile-avatar"
-                                        type="url"
-                                        class="form-control"
-                                        placeholder="https://example.com/avatar.jpg"
-                                    >
+                                <div class="row g-3 mb-4 profile-avatar-fields">
+                                    <div class="col-md-7">
+                                        <label for="profile-avatar" class="form-label">Link ảnh đại diện</label>
+                                        <input
+                                            v-model.trim="avatar"
+                                            id="profile-avatar"
+                                            type="url"
+                                            class="form-control"
+                                            placeholder="https://example.com/avatar.jpg"
+                                            @input="removeUploadedAvatar"
+                                        >
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="profile-avatar-file" class="form-label">Hoặc chọn ảnh từ máy</label>
+                                        <input id="profile-avatar-file" ref="avatarFile" type="file" accept="image/*" class="form-control create-image-file" @change="handleAvatarUpload">
+                                    </div>
+                                    <div class="col-12 d-flex flex-wrap align-items-center gap-2">
+                                        <small class="text-secondary">Ảnh được thu nhỏ tự động (tối đa 12 MB).</small>
+                                        <button v-if="uploadedAvatar" type="button" class="btn btn-sm btn-link p-0 ms-auto" @click="removeUploadedAvatar">Bỏ ảnh đã chọn</button>
+                                        <p v-if="avatarUploadError" class="w-100 text-danger small mb-0" role="alert">{{ avatarUploadError }}</p>
+                                    </div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">
@@ -100,7 +116,7 @@
 <script>
 import PasswordField from '../components/PasswordField.vue'
 import { getStoredUser, isAuthenticated, saveUser, userEmailExists } from '../utils/auth.js'
-import { readPosts, savePosts } from '../utils/blog.js'
+import { readPosts, savePosts, prepareImageUpload } from '../utils/blog.js'
 
 export default {
     components: { PasswordField },
@@ -111,7 +127,10 @@ export default {
             email: '',
             password: '',
             avatar: '',
+            uploadedAvatar: '',
+            avatarUploadError: '',
             defaultAvatar: 'https://i.pravatar.cc/150?img=12',
+            postCount: 0,
             originalPassword: '',
             message: '',
             error: ''
@@ -127,6 +146,12 @@ export default {
         this.loadProfile()
     },
 
+    computed: {
+        previewAvatar() {
+            return this.uploadedAvatar || this.avatar || this.defaultAvatar
+        }
+    },
+
     methods: {
         loadProfile() {
             const user = getStoredUser()
@@ -140,7 +165,32 @@ export default {
             this.email = user.email || ''
             this.originalPassword = user.password || ''
             this.password = ''
-            this.avatar = user.avatar || this.defaultAvatar
+            if (user.avatar?.startsWith('data:image/')) {
+                this.avatar = ''
+                this.uploadedAvatar = user.avatar
+            } else {
+                this.avatar = user.avatar || ''
+                this.uploadedAvatar = ''
+            }
+            this.postCount = readPosts().filter(post => post.email?.toLowerCase() === user.email?.toLowerCase()).length
+        },
+
+        async handleAvatarUpload(event) {
+            const file = event.target.files?.[0]
+            this.avatarUploadError = ''
+            if (!file) return
+            try {
+                this.uploadedAvatar = await prepareImageUpload(file)
+            } catch (error) {
+                this.avatarUploadError = error.message || 'Không thể tải ảnh đại diện lên.'
+                event.target.value = ''
+            }
+        },
+
+        removeUploadedAvatar() {
+            this.uploadedAvatar = ''
+            this.avatarUploadError = ''
+            if (this.$refs.avatarFile) this.$refs.avatarFile.value = ''
         },
 
         updateProfile() {
@@ -179,7 +229,7 @@ export default {
             user.name = this.name.trim()
             user.email = nextEmail
             user.password = this.password || this.originalPassword
-            user.avatar = this.avatar || this.defaultAvatar
+            user.avatar = this.uploadedAvatar || this.avatar || this.defaultAvatar
 
             if (!saveUser(user, originalEmail)) {
                 this.error = 'Không thể lưu thông tin trên thiết bị này.'
