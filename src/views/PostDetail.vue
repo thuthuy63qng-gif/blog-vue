@@ -398,6 +398,8 @@ export default {
 
         async deleteComment(commentId) {
             if (!this.post) return
+            this.commentError = ''
+            this.commentMessage = ''
             const confirmed = await showAppDialog({
                 title: 'Xóa bình luận này?',
                 message: 'Bạn có chắc muốn xóa bình luận này?',

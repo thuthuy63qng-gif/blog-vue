@@ -312,7 +312,7 @@ export default {
         },
 
         async resetForm() {
-            if (this.title || this.image || this.content) {
+            if (this.title || this.image || this.uploadedImage || this.content) {
                 const confirmed = await showAppDialog({
                     title: 'Xóa nội dung hiện tại?',
                     message: 'Bạn có muốn xóa tiêu đề, hình ảnh và nội dung đã nhập không?',
